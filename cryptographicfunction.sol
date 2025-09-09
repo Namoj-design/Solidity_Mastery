@@ -1,0 +1,39 @@
+// SPDX-License-Identifier: MIT
+pragma solidity >= 0.7.0 < 0.9.0;
+
+contract Oracle {
+    address admin;
+    uint public rand;
+    
+    constructor() {
+        admin = msg.sender;
+    }
+
+    function feedRand(uint _rand) external {
+        require(msg.sender == admin, "Only admin can feed randomness");
+        rand = _rand;
+    }
+}
+
+
+contract GenerateRandomNumber {
+    
+    Oracle oracle; 
+    
+    constructor(address oracleAddress) {
+        oracle = Oracle(oracleAddress);
+    }
+
+    function randMod(uint range) external view returns(uint) {
+        return uint(
+            keccak256(
+                abi.encodePacked(
+                    oracle.rand(),
+                    block.timestamp,
+                    block.prevrandao, 
+                    msg.sender
+                )
+            )
+        ) % range;
+    }
+}
